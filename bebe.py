@@ -133,12 +133,15 @@ def establish_connexion(key):
 
 ###########################################################
 #Décoder le message du be:bi parent
-def decoder(s):
-    s.strip("|")
-    code = s[0]
-    longueur = s[1]
-    contenu = s[2]
+def decoder(message):
+    message = message.split("|")
+    code = message[0]
+    longueur = message[1]
+    contenu = message[2]
+    display.show(Image.HAPPY)
     return code, longueur, contenu
+
+
 
 #######################################################
 #Fonctions sysytème surveillance etat bb
@@ -177,14 +180,83 @@ def melodie(bruit,mouvement):
         #mettre music
     elif shout(bruit) == False and is_awake(mouvement) == True: #agité
         pass  #ici aussi c'est pour l'erreur
+#############################################################################
+#Fonctions pour le lait
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ########################################################################################################
+#Fonction pour vérifier l'environnement durant le sommeil du bébé
+
+#faire une interface pour avoir les données de quand il dort
+#donc un bouton qui montre la température, un le son et un la luminosité
+
+def get_temperature(code):
+    if code == "Temperature":
+        t = temperature()
+        if 19 <= t <= 21:
+            for i in range(3):
+                display.show(Image.HAPPY)
+                sleep(1000)
+                display.scroll("t: " + str(temperature()))
+                sleep(250)#c'est ce qui faudra faire sur le be:bi parent
+            
+        if 17 <= t <= 18 or 22 <= t <= 24:
+            #petite alerte ON ENVOIE EMOJI PAS TRISTE MAIS PAS JOYEUX COMME CA :/ et on envoie la t°
+            audio.play(Sound.HAPPY)
+            for i in range(3):
+                display.show(Image.SAD)
+                sleep(1000)
+                display.scroll("t: " + str(temperature()))
+                sleep(250)
+            
+        if t < 17 or t > 24:
+            #grosse alerte C'EST LE :( + t°
+            audio.play(Sound.SAD)
+            for i in range(3):
+                display.show(Image.ANGRY)
+                sleep(1000)
+                display.scroll("t: " + str(temperature()))
+                sleep(250)
+            
+    
+
+
+
+
+
+
+
+
+###########################################################################################################
+#toute la partie qui va faire en sorte que notre code fonctionne
 
 display.show(Image.SQUARE_SMALL) #on affiche l'image pour identifier le be:bi parent
 radio.on()
 radio.config(channel=2)
+radio.config(group=2)
 
 def main():
     while True:
+        message = radio.receive()
+        if message :
+            code, longueur, contenu = decoder(message)
+            get_temperature(code)
+        
+
+main()
+            
+        
         
         
