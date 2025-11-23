@@ -136,6 +136,51 @@ def respond_to_connexion_request(key):
 	:return (srt) challenge_response:   Réponse au challenge
     """
 
+# Fonctions doses de laits
+
+# On commence avec 0 dose de lait
+etat = {"doses": 0}
+
+# Affiche la dose sur les LEDs
+def show_value(val):
+    display.show(str(val % 10))  # Affiche la dose sur les LEDs et ne va pas au-dessus de 10 car le micro byte ne peux pas afficher 2 chiffre
+
+# Affiche 0 dès le démarrage
+show_value(etat["doses"])
+
+def add_doses(e):
+    # Si on appuie sur le bouton B
+    if button_b.was_pressed():   
+        e["doses"] += 1 # On augmente le compteur
+        show_value(e["doses"])
+
+def delete_doses(e):
+    # Si on appuie sur le bouton A
+    if button_a.was_pressed():
+        if e["doses"] > 0:  # On ne peut pas descendre en dessous de 0
+            e["doses"] -= 1   # On diminue le compteur
+        show_value(e["doses"])
+
+def reset_doses(e):
+    # Si on appuie sur les deux boutons en même temps
+    if button_a.is_pressed() and button_b.is_pressed():
+        e["doses"] = 0  # On remet à zéro
+        show_value(e["doses"])  
+
+# Envoyer le nombre de doses be:bi’ enfant
+def send_doses(e):
+    if pin_logo.is_touched():
+        display.scroll(str(e["doses"]))
+        radio.send(str(e["doses"]))
+
+# Boucle qui tourne tout le temps pour vérifier les boutons
+while True:
+    add_doses(etat)
+    delete_doses(etat)
+    reset_doses(etat)
+    send_doses(etat)
+
+
 ################################################################################################
 
 display.show(Image.SQUARE)
