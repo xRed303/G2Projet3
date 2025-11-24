@@ -149,7 +149,7 @@ def show_value(val):
         # Scroll qui se fait a l infini et sans blocker le programme pour les nombres a 2 chiffres
          display.scroll(str(val), wait=False, loop=True)
 
-# Affiche 0 dès le démarrage
+# Affiche 0 dès le démarrage et la derniere dose si on eteint pas le microbits
 show_value(etat["doses"])
 
 def add_doses(e):
