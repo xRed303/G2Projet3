@@ -4,170 +4,93 @@ import radio
 import random
 import music
 
-#Can be used to filter the communication, only the ones with the same parameters will receive messages
-#radio.config(group=23, channel=2, address=0x11111111)
-#default : channel=7 (0-83), address = 0x75626974, group = 0 (0-255)
-
 def hashing(string):
-	"""
-	Hachage d'une chaîne de caractères fournie en paramètre.
-	Le résultat est une chaîne de caractères.
-	Attention : cette technique de hachage n'est pas suffisante (hachage dit cryptographique) pour une utilisation en dehors du cours.
+    def to_32(value):
+        value = value % (2 ** 32)
+        if value >= 2**31:
+            value = value - 2 ** 32
+        value = int(value)
+        return value
+    if string:
+        x = ord(string[0]) << 7
+        m = 1000003
+        for c in string:
+            x = to_32((x*m) ^ ord(c))
+        x ^= len(string)
+        if x == -1:
+            x = -2
+        return str(x)
+    return ""
 
-	:param (str) string: la chaîne de caractères à hacher
-	:return (str): le résultat du hachage
-	"""
-	def to_32(value):
-		"""
-		Fonction interne utilisée par hashing.
-		Convertit une valeur en un entier signé de 32 bits.
-		Si 'value' est un entier plus grand que 2 ** 31, il sera tronqué.
-
-		:param (int) value: valeur du caractère transformé par la valeur de hachage de cette itération
-		:return (int): entier signé de 32 bits représentant 'value'
-		"""
-		value = value % (2 ** 32)
-		if value >= 2**31:
-			value = value - 2 ** 32
-		value = int(value)
-		return value
-
-	if string:
-		x = ord(string[0]) << 7
-		m = 1000003
-		for c in string:
-			x = to_32((x*m) ^ ord(c))
-		x ^= len(string)
-		if x == -1:
-			x = -2
-		return str(x)
-	return ""
-    
 def vigenere(message, key, decryption=False):
     text = ""
     key_length = len(key)
     key_as_int = [ord(k) for k in key]
-
     for i, char in enumerate(str(message)):
         key_index = i % key_length
-        #Letters encryption/decryption
         if char.isalpha():
             if decryption:
                 modified_char = chr((ord(char.upper()) - key_as_int[key_index] + 26) % 26 + ord('A'))
-            else : 
+            else:
                 modified_char = chr((ord(char.upper()) + key_as_int[key_index] - 26) % 26 + ord('A'))
-            #Put back in lower case if it was
             if char.islower():
                 modified_char = modified_char.lower()
             text += modified_char
-        #Digits encryption/decryption
         elif char.isdigit():
             if decryption:
                 modified_char = str((int(char) - key_as_int[key_index]) % 10)
-            else:  
+            else:
                 modified_char = str((int(char) + key_as_int[key_index]) % 10)
             text += modified_char
         else:
             text += char
     return text
-    
+
 def send_packet(key, type, content):
-    """
-    Envoie de données fournie en paramètres
-    Cette fonction permet de construire, de chiffrer puis d'envoyer un paquet via l'interface radio du micro:bit
+    length = len(content)
+    message = str(type) + "|" + str(length) + "|" + content
+    crypted_message = vigenere(message, key, decryption=False)
+    radio.send(crypted_message)
 
-    :param (str) key:       Clé de chiffrement
-           (str) type:      Type du paquet à envoyer
-           (str) content:   Données à envoyer
-	:return none
-    """
-    #Format message: type | long | message
-    long = str(len(content))
-    message = type + "|" + long + "|" + content
-    message_hash = hashing(message)
-    message += "|" + message_hash
-    message_chiffre = vigenere(message,key,decryption=False)
-    radio.send(message_chiffre)
-    
-#Decrypt and unpack the packet received and return the fields value
-def unpack_data(encrypted_packet, key):
-    """
-    Déballe et déchiffre les paquets reçus via l'interface radio du micro:bit
-    Cette fonction renvoit les différents champs du message passé en paramètre
+def unpack_data(crypted_message, key):
+    message = vigenere(crypted_message, key, decryption = True)
+    try:
+        packet_type, packet_length, packet_content = message.split("|", 2)
+        return packet_type, int(packet_length), packet_content
+    except:
+        return "", 0, ""
 
-    :param (str) encrypted_packet: Paquet reçu
-           (str) key:              Clé de chiffrement
-	:return (srt)type:             Type de paquet
-            (int)lenght:           Longueur de la donnée en caractères
-            (str) message:         Données reçues
-    """
-    message_dechiffre = vigenere(encrypted_packet,key,decryption=True)
-    #message => 1|longueur|message|hash
-    message_dechiffre = message_dechiffre.split("|")
-    typePaquet = message_dechiffre[0]
-    lenght = int(message_dechiffre[1])
-    message = message_dechiffre[2]
-    hash_message = message_dechiffre[3]
-    return typePaquet,lenght,message,hash_message
-
-#Unpack the packet, check the validity and return the type, length and content
 def receive_packet(packet_received, key):
-    """
-    Traite les paquets reçue via l'interface radio du micro:bit
-    Cette fonction permet de construire, de chiffrer puis d'envoyer un paquet via l'interface radio du micro:bit
-    Si une erreur survient, les 3 champs sont retournés vides
+    packet_type, packet_length, packet_content = unpack_data(packet_received, key)
+    if packet_type == "":
+        return "", 0, ""
+    if ":" not in packet_content:
+        return "", 0, ""
+    nonce, data = packet_content.split(":", 1)
+    if nonce in nonce_list:
+        return "", 0, ""
+    nonce_list.append(nonce)
+    return packet_type, packet_length, nonce, data
 
-    :param (str) packet_received: Paquet reçue
-           (str) key:              Clé de chiffrement
-	:return (srt)type:             Type de paquet
-            (int)lenght:           Longueur de la donnée en caractère
-            (str) message:         Données reçue
-    """
-    donnee = unpack_data(packet_received,key) #donnee = (T,L,M)
-    #partie securite
-    verif_hash = hashing(donnee[0]+"|"+str(donnee[1])+"|"+donnee[2])
-    if verif_hash != donnee[3]:
-        return "",0,""
-    if len(donnee[2]) != donnee[1]:
-        return "",0,"" 
-    #fin partie securite
-    return donnee[0],donnee[1],donnee[2]
-    
-#Calculate the challenge response
 def calculate_challenge_response(challenge):
-    """
-    Calcule la réponse au challenge initial de connection avec l'autre micro:bit
+    random.seed(int(challenge))
+    return str(random.randint(100000, 999999))
 
-    :param (str) challenge:            Challenge reçu
-	:return (srt)challenge_response:   Réponse au challenge
-    """
-    #challenge = mot de passe
-    return hashing(challenge[::-1])
-
-#Ask for a new connection with a micro:bit of the same group
 def establish_connexion(key):
-    """
-    Etablissement de la connexion avec l'autre micro:bit
-    Si il y a une erreur, la valeur de retour est vide
+    nonce = str(random.randint(100000, 999999))
+    challenge = str(random.randint(100000, 999999))
+    send_packet(key, "01", nonce + ":" + challenge)
+    t = running_time()
+    while running_time() - t < 10000:
+        packet = radio.receive()
+        if packet:
+            packet_type, packet_length, nonce, data = receive_packet(packet, key)
+            if packet_type == "02":
+                local_resp = calculate_challenge_response(challenge)
+                if hashing(local_resp) == data:
+                    return key + local_resp
+    return ""
 
-    :param (str) key:                  Clé de chiffrement
-	:return (srt)challenge_response:   Réponse au challenge
-    """
-    challenge = str(random.randint(1000,100000))
-    send_packet(key,"CHALLENGE",challenge)
-    finished = False
-    while not finished:
-         message_recu = radio.receive()
-         data = receive_packet(message_recu,key)
-         if data[0] == "CHALLENGE":
-              expected = calculate_challenge_response(challenge)
-              if data[2] == expected:
-                   send_packet(key,"ACK","OK")
-                   finished = True
-                   return expected
-              else:
-                   return ""
-                  
 
 #######################################################
 #Fonctions sysytème surveillance etat bb
@@ -273,13 +196,20 @@ def get_temperature(code):
 display.show(Image.SQUARE_SMALL) #on affiche l'image pour identifier le be:bi parent
 radio.on()
 radio.config(channel=2)
-radio.config(group=2)
+nonce_list = []
 
 def main():
+    key = "MIMOSA"
+    session_key = establish_connexion(key)
+    if session_key != "":
+        display.scroll("co OK")
+    else:
+        display.scroll("co FAIL")
+        
     while True:
-        establish_connexion("MIMOSA")
-        packet_received = radio.receive()
-        receive_packet(packet_received, "MIMOSA")
+        sleep(100)
+        
+        
         
         
 
@@ -288,3 +218,4 @@ main()
         
         
         
+
