@@ -189,7 +189,7 @@ radio.config(channel=2)
 
 def main():
     while True:
-        establish_connexion("MIMOSA")
+        respond_to_connexion_request("MIMOSA")
         packet_received = radio.receive()
         receive_packet(packet_received, "MIMOSA")
         
