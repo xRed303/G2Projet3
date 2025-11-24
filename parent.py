@@ -90,6 +90,12 @@ def send_packet(key, type, content):
            (str) content:   Données à envoyer
 	:return none
     """
+	long = str(len(content))
+    message = type + "|" + long + "|" + content
+    message_hash = hashing(message)
+    message += "|" + message_hash
+    message_chiffre = vigenere(message,key,decryption=False)
+    radio.send(message_chiffre)
 
 #Unpack the packet, check the validity and return the type, length and content
 def unpack_data(encrypted_packet, key):
@@ -103,6 +109,14 @@ def unpack_data(encrypted_packet, key):
             (int)length:           Longueur de la donnée en caractères
             (str) message:         Données reçue
     """
+    message_dechiffre = vigenere(encrypted_packet,key,decryption=True)
+    #message => 1|longueur|message|hash
+    message_dechiffre = message_dechiffre.split("|")
+    typePaquet = message_dechiffre[0]
+    lenght = int(message_dechiffre[1])
+    message = message_dechiffre[2]
+    hash_message = message_dechiffre[3]
+    return typePaquet,lenght,message,hash_message
 
 def receive_packet(packet_received, key):
     """
@@ -116,6 +130,16 @@ def receive_packet(packet_received, key):
             (int)lenght:           Longueur de la donnée en caractère
             (str) message:         Données reçue
     """
+    donnee = unpack_data(packet_received,key) #donnee = (T,L,M)
+    #partie securite
+    verif_hash = hashing(donnee[0]+"|"+str(donnee[1])+"|"+donnee[2])
+    if verif_hash != donnee[3]:
+        return "",0,""
+    if len(donnee[2]) != donnee[1]:
+        return "",0,"" 
+    #fin partie securite
+    return donnee[0],donnee[1],donnee[2]
+	
 
 #Calculate the challenge response
 def calculate_challenge_response(challenge):
@@ -125,7 +149,7 @@ def calculate_challenge_response(challenge):
     :param (str) challenge:            Challenge reçu
 	:return (srt)challenge_response:   Réponse au challenge
     """
-
+	return hashing(challenge[::-1])
 #Respond to a connexion request by sending the hash value of the number received
 def respond_to_connexion_request(key):
     """
@@ -135,6 +159,18 @@ def respond_to_connexion_request(key):
     :param (str) key:                   Clé de chiffrement
 	:return (srt) challenge_response:   Réponse au challenge
     """
+	packet = radio.receive()
+    if not packet:
+        return ""
+
+    challenge_recu = receive_packet(packet, key)
+
+    if challenge_recu[0] != "CHALLENGE":
+        return ""
+    response = calculate_challenge_response(challenge_recu[2])
+    send_packet(key, "RESPONSE", response)
+    return response
+	
 
 # Fonctions doses de laits
 
