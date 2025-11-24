@@ -153,33 +153,16 @@ def melodie(bruit,mouvement):
 #faire une interface pour avoir les données de quand il dort
 #donc un bouton qui montre la température, un le son et un la luminosité
 
-def get_temperature(code):
-    if code == "Temperature":
-        t = temperature()
-        if 19 <= t <= 21:
-            for i in range(3):
-                display.show(Image.HAPPY)
-                sleep(1000)
-                display.scroll("t: " + str(temperature()))
-                sleep(250)#c'est ce qui faudra faire sur le be:bi parent
+def get_temperature():
+    t = temperature()
+    if 19 <= t <= 21:
+        send_packet(session_key, "1", str(t))
             
-        if 17 <= t <= 18 or 22 <= t <= 24:
-            #petite alerte ON ENVOIE EMOJI PAS TRISTE MAIS PAS JOYEUX COMME CA :/ et on envoie la t°
-            audio.play(Sound.HAPPY)
-            for i in range(3):
-                display.show(Image.SAD)
-                sleep(1000)
-                display.scroll("t: " + str(temperature()))
-                sleep(250)
-            
-        if t < 17 or t > 24:
-            #grosse alerte C'EST LE :( + t°
-            audio.play(Sound.SAD)
-            for i in range(3):
-                display.show(Image.ANGRY)
-                sleep(1000)
-                display.scroll("t: " + str(temperature()))
-                sleep(250)
+    if 17 <= t <= 18 or 22 <= t <= 24:
+        send_packet(session_key, "2", str(t))
+
+    if t < 17 or t > 24:
+        send_packet(session_key, "3", str(t))
             
     
 
@@ -199,6 +182,7 @@ radio.config(channel=2)
 nonce_list = []
 
 def main():
+    global session_key
     key = "MIMOSA"
     session_key = establish_connexion(key)
     if session_key != "":
@@ -207,8 +191,7 @@ def main():
         display.scroll("co FAIL")
         
     while True:
-        sleep(100)
-        
+        get_temperature()
         
         
         
