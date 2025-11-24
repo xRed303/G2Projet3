@@ -208,8 +208,10 @@ def reset_doses(e):
 # Envoyer le nombre de doses be:bi’ enfant
 def send_doses(e):
     if pin_logo.is_touched():
-        display.scroll(str(e["doses"]))
-        radio.send(str(e["doses"]))
+        display.show(Image.YES) # Affiche un petit symbole pour indiquer que le message est envoyé
+        radio.send(str(e["doses"])) 
+        sleep(750) 
+        show_value(e["doses"])
 
 
 
