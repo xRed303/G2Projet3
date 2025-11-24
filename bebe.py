@@ -8,8 +8,6 @@ import music
 #radio.config(group=23, channel=2, address=0x11111111)
 #default : channel=7 (0-83), address = 0x75626974, group = 0 (0-255)
 
-
-
 def hashing(string):
 	"""
 	Hachage d'une chaîne de caractères fournie en paramètre.
@@ -83,7 +81,14 @@ def send_packet(key, type, content):
            (str) content:   Données à envoyer
 	:return none
     """
-
+    #Format message: type | long | message
+    long = str(len(content))
+    message = type + "|" + long + "|" + content
+    message_hash = hashing(message)
+    message += "|" + message_hash
+    message_chiffre = vigenere(message,key,decryption=False)
+    radio.send(message_chiffre)
+    
 #Decrypt and unpack the packet received and return the fields value
 def unpack_data(encrypted_packet, key):
     """
@@ -96,7 +101,14 @@ def unpack_data(encrypted_packet, key):
             (int)lenght:           Longueur de la donnée en caractères
             (str) message:         Données reçues
     """
-
+    message_dechiffre = vigenere(encrypted_packet,key,decryption=True)
+    #message => 1|longueur|message|hash
+    message_dechiffre = message_dechiffre.split("|")
+    typePaquet = message_dechiffre[0]
+    lenght = int(message_dechiffre[1])
+    message = message_dechiffre[2]
+    hash_message = message_dechiffre[3]
+    return typePaquet,lenght,message,hash_message
 
 #Unpack the packet, check the validity and return the type, length and content
 def receive_packet(packet_received, key):
@@ -111,6 +123,15 @@ def receive_packet(packet_received, key):
             (int)lenght:           Longueur de la donnée en caractère
             (str) message:         Données reçue
     """
+    donnee = unpack_data(packet_received,key) #donnee = (T,L,M)
+    #partie securite
+    verif_hash = hashing(donnee[0]+"|"+str(donnee[1])+"|"+donnee[2])
+    if verif_hash != donnee[3]:
+        return "",0,""
+    if len(donnee[2]) != donnee[1]:
+        return "",0,"" 
+    #fin partie securite
+    return donnee[0],donnee[1],donnee[2]
     
 #Calculate the challenge response
 def calculate_challenge_response(challenge):
@@ -120,7 +141,9 @@ def calculate_challenge_response(challenge):
     :param (str) challenge:            Challenge reçu
 	:return (srt)challenge_response:   Réponse au challenge
     """
-    
+    #challenge = mot de passe
+    return hashing(challenge[::-1])
+
 #Ask for a new connection with a micro:bit of the same group
 def establish_connexion(key):
     """
@@ -130,21 +153,25 @@ def establish_connexion(key):
     :param (str) key:                  Clé de chiffrement
 	:return (srt)challenge_response:   Réponse au challenge
     """
-
-###########################################################
-#Décoder le message du be:bi parent
-def decoder(message):
-    message = message.split("|")
-    code = message[0]
-    longueur = message[1]
-    contenu = message[2]
-    display.show(Image.HAPPY)
-    return code, longueur, contenu
-
-
+    challenge = str(random.randint(1000,100000))
+    send_packet(key,"CHALLENGE",challenge)
+    finished = False
+    while not finished:
+         message_recu = radio.receive()
+         data = receive_packet(message_recu,key)
+         if data[0] == "CHALLENGE":
+              expected = calculate_challenge_response(challenge)
+              if data[2] == expected:
+                   send_packet(key,"ACK","OK")
+                   finished = True
+                   return expected
+              else:
+                   return ""
+                  
 
 #######################################################
 #Fonctions sysytème surveillance etat bb
+
 def convert(millig):
     if millig >= 0:
         m_par_second_caree = millig/(10**-5)
@@ -180,6 +207,7 @@ def melodie(bruit,mouvement):
         #mettre music
     elif shout(bruit) == False and is_awake(mouvement) == True: #agité
         pass  #ici aussi c'est pour l'erreur
+        
 #############################################################################
 #Fonctions pour le lait
 
@@ -249,10 +277,10 @@ radio.config(group=2)
 
 def main():
     while True:
-        message = radio.receive()
-        if message :
-            code, longueur, contenu = decoder(message)
-            get_temperature(code)
+        establish_connexion("MIMOSA")
+        packet_received = radio.receive()
+        receive_packet(packet_received, "MIMOSA")
+        
         
 
 main()
