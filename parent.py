@@ -1,3 +1,4 @@
+#########################################################################################################
 from microbit import *
 import radio
 import random
@@ -6,15 +7,6 @@ import music
 #Can be used to filter the communication, only the ones with the same parameters will receive messages
 #radio.config(group=23, channel=2, address=0x11111111)
 #default : channel=7 (0-83), address = 0x75626974, group = 0 (0-255)
-
-#Initialisation des variables du micro:bit
-radio.on()
-connexion_established = False
-key = "KEYWORD"
-connexion_key = None
-nonce_list = set()
-baby_state = 0
-set_volume(100)
 
 def hashing(string):
 	"""
@@ -57,9 +49,9 @@ def vigenere(message, key, decryption=False):
     key_as_int = [ord(k) for k in key]
 
     for i, char in enumerate(str(message)):
+        key_index = i % key_length
         #Letters encryption/decryption
         if char.isalpha():
-            key_index = i % key_length
             if decryption:
                 modified_char = chr((ord(char.upper()) - key_as_int[key_index] + 26) % 26 + ord('A'))
             else : 
@@ -70,7 +62,6 @@ def vigenere(message, key, decryption=False):
             text += modified_char
         #Digits encryption/decryption
         elif char.isdigit():
-            key_index = i % key_length
             if decryption:
                 modified_char = str((int(char) - key_as_int[key_index]) % 10)
             else:  
@@ -82,7 +73,7 @@ def vigenere(message, key, decryption=False):
     
 def send_packet(key, type, content):
     """
-    Envoi de données fournies en paramètres
+    Envoie de données fournie en paramètres
     Cette fonction permet de construire, de chiffrer puis d'envoyer un paquet via l'interface radio du micro:bit
 
     :param (str) key:       Clé de chiffrement
@@ -90,14 +81,15 @@ def send_packet(key, type, content):
            (str) content:   Données à envoyer
 	:return none
     """
-	long = str(len(content))
+    #Format message: type | long | message
+    long = str(len(content))
     message = type + "|" + long + "|" + content
     message_hash = hashing(message)
     message += "|" + message_hash
     message_chiffre = vigenere(message,key,decryption=False)
     radio.send(message_chiffre)
-
-#Unpack the packet, check the validity and return the type, length and content
+    
+#Decrypt and unpack the packet received and return the fields value
 def unpack_data(encrypted_packet, key):
     """
     Déballe et déchiffre les paquets reçus via l'interface radio du micro:bit
@@ -106,8 +98,8 @@ def unpack_data(encrypted_packet, key):
     :param (str) encrypted_packet: Paquet reçu
            (str) key:              Clé de chiffrement
 	:return (srt)type:             Type de paquet
-            (int)length:           Longueur de la donnée en caractères
-            (str) message:         Données reçue
+            (int)lenght:           Longueur de la donnée en caractères
+            (str) message:         Données reçues
     """
     message_dechiffre = vigenere(encrypted_packet,key,decryption=True)
     #message => 1|longueur|message|hash
@@ -118,10 +110,11 @@ def unpack_data(encrypted_packet, key):
     hash_message = message_dechiffre[3]
     return typePaquet,lenght,message,hash_message
 
+#Unpack the packet, check the validity and return the type, length and content
 def receive_packet(packet_received, key):
     """
-    Traite les paquets reçus via l'interface radio du micro:bit
-    Cette fonction utilise la fonction unpack_data pour renvoyer les différents champs du message passé en paramètre
+    Traite les paquets reçue via l'interface radio du micro:bit
+    Cette fonction permet de construire, de chiffrer puis d'envoyer un paquet via l'interface radio du micro:bit
     Si une erreur survient, les 3 champs sont retournés vides
 
     :param (str) packet_received: Paquet reçue
@@ -139,18 +132,19 @@ def receive_packet(packet_received, key):
         return "",0,"" 
     #fin partie securite
     return donnee[0],donnee[1],donnee[2]
-	
-
+    
 #Calculate the challenge response
 def calculate_challenge_response(challenge):
     """
-    Calcule la réponse au challenge initial de connection envoyé par l'autre micro:bit
+    Calcule la réponse au challenge initial de connection avec l'autre micro:bit
 
     :param (str) challenge:            Challenge reçu
 	:return (srt)challenge_response:   Réponse au challenge
     """
-	return hashing(challenge[::-1])
-#Respond to a connexion request by sending the hash value of the number received
+    #challenge = mot de passe
+    return hashing(challenge[::-1])
+
+#Ask for a new connection with a micro:bit of the same group
 def respond_to_connexion_request(key):
     """
     Réponse au challenge initial de connection avec l'autre micro:bit
@@ -159,7 +153,7 @@ def respond_to_connexion_request(key):
     :param (str) key:                   Clé de chiffrement
 	:return (srt) challenge_response:   Réponse au challenge
     """
-	packet = radio.receive()
+    packet = radio.receive()
     if not packet:
         return ""
 
@@ -170,8 +164,8 @@ def respond_to_connexion_request(key):
     response = calculate_challenge_response(challenge_recu[2])
     send_packet(key, "RESPONSE", response)
     return response
-	
-
+    
+#################################################################################
 # Fonctions doses de laits
 
 # On commence avec 0 dose de lait
@@ -217,12 +211,6 @@ def send_doses(e):
         display.scroll(str(e["doses"]))
         radio.send(str(e["doses"]))
 
-# Boucle qui tourne tout le temps pour vérifier les boutons
-while True:
-    add_doses(etat)
-    delete_doses(etat)
-    reset_doses(etat)
-    send_doses(etat)
 
 
 ################################################################################################
@@ -236,4 +224,10 @@ def main():
         respond_to_connexion_request("MIMOSA")
         packet_received = radio.receive()
         receive_packet(packet_received, "MIMOSA")
+
+        """add_doses(etat)
+        delete_doses(etat)
+        reset_doses(etat)
+        send_doses(etat)
+        """
         
