@@ -143,16 +143,24 @@ etat = {"doses": 0}
 
 # Affiche la dose sur les LEDs
 def show_value(val):
-    display.show(str(val % 10))  # Affiche la dose sur les LEDs et ne va pas au-dessus de 10 car le micro byte ne peux pas afficher 2 chiffre
+    if val < 10:    
+        display.show(str(val)) # Affiche la dose sur les LEDs et ne va pas au-dessus de 9
+    else:  
+        # Scroll qui se fait a l infini et sans blocker le programme pour les nombres a 2 chiffres
+         display.scroll(str(val), wait=False, loop=True)
 
 # Affiche 0 dès le démarrage
 show_value(etat["doses"])
 
 def add_doses(e):
-    # Si on appuie sur le bouton B
+    # Si on appuie sur le bouton B 
     if button_b.was_pressed():   
-        e["doses"] += 1 # On augmente le compteur
-        show_value(e["doses"])
+        if e["doses"] < 99: # limite de doses a donner
+            e["doses"] += 1  # On augmente le compteur
+            show_value(e["doses"])
+        else:
+            display.scroll("Stop c'est quoi ton probleme de lui donner autant de dose")    # si on dépasse les 99 doses MSG D AVERTISSEMENT
+            show_value(e["doses"])
 
 def delete_doses(e):
     # Si on appuie sur le bouton A
