@@ -4,7 +4,6 @@ import radio
 import random
 import music
 
-
 def hashing(string):
     def to_32(value):
         value = value % (2 ** 32)
@@ -93,9 +92,6 @@ def respond_to_connexion_request(key):
                 return key + challenge_resp
     return ""
 
-
-
-    
 #################################################################################
 # Fonctions doses de laits
 
@@ -143,8 +139,36 @@ def send_doses(e):
         radio.send(str(e["doses"])) 
         sleep(750) 
         show_value(e["doses"])
+##############################################################################################
+#partie environnement bébé
 
+def Temperature1(data):
+    t = data
+    display.show(Image.HAPPY)
+    sleep(1000)
+    display.scroll("t: " + str(t))
+    sleep(250)
+    
+def Temperature2(data):
+    #petite alerte ON ENVOIE EMOJI PAS TRISTE MAIS PAS JOYEUX COMME CA :/ et on envoie la t°
+    t = data
+    audio.play(Sound.HAPPY)
+    display.show(Image.SAD)
+    sleep(1000)
+    display.scroll("t: " + str(temperature()))
+    sleep(250)
 
+def Temperature3(data):
+    #grosse alerte C'EST LE :( + t°
+    t = data
+    audio.play(Sound.SAD)
+    for i in range(3):
+        display.show(Image.ANGRY)
+        sleep(1000)
+        display.scroll("t: " + str(temperature()))
+        sleep(250)
+    
+    
 
 ################################################################################################
 
@@ -154,6 +178,7 @@ radio.config(channel=2)
 nonce_list = []
 
 def main():
+    global session_key
     key = "MIMOSA"
     session_key = respond_to_connexion_request(key)
     if session_key != "":
@@ -162,8 +187,27 @@ def main():
         display.scroll("co FAIL")
         
     while True:
-        sleep(100)
+        display.show(Image.SQUARE)
+        message_received = radio.receive()
+        try:
+            packet_type , packet_length, nonce, data = receive_packet(message_received, session_key)
+        except:
+            continue
+        
 
+        #################partie environnement
+        if packet_type == "1":
+            Temperature1(data)
+
+        if packet_type == "2":
+            Temperature2(data)
+
+        if packet_type == "3":
+            display.scroll("OK")
+            Temperature3(data)
+            
+        
+        ##################partie biberon
         """add_doses(etat)
         delete_doses(etat)
         reset_doses(etat)
