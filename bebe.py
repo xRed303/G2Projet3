@@ -95,41 +95,66 @@ def establish_connexion(key):
 #######################################################
 #Fonctions sysytème surveillance etat bb
 
-def convert(millig):
-    if millig >= 0:
-        m_par_second_caree = millig/(10**-5)
-    else:
-        m_par_second_caree = -millig/(10**-5)
-    return m_par_second_caree
-    
-def is_awake(mouvement):
-    liste = []
-    #mouvement = (accelerometer.get_x(),accelerometer.get_y(),accelerometer.get_z())
-    for coor in mouvement:
-        convert(coor)
-        if coor > 5:
-            liste.append("éveillé")
-    if "éveillé" in liste:
-        return True
-    else:
-        return False
-        
-def shout(bruit):
-    """pre:
-    bruit: est une instance de """
-    speaker.on()
-    #bruit = microphone.sound_level()
-    if bruit > 200:
-        return True
-    else:
-        return False
+# état initial
+etat = {"eveil": "ENDORMI"}  
 
-def melodie(bruit,mouvement):
-    if shout(bruit) == True and is_awake(mouvement) == True: #très agité
-        pass#à retirer c'est juste pour virer l'erreur
-        #mettre music
-    elif shout(bruit) == False and is_awake(mouvement) == True: #agité
-        pass  #ici aussi c'est pour l'erreur
+# Fonction qui lit la force du mouvement via l'accéléromètre
+def detect_mouvement():
+    return accelerometer.get_strength()
+
+# Fonction qui calcule l'état d'éveil à partir de la force mesurée via l accelerometre
+def calculate_status(force):
+    # Faible mouvement → endormi
+    if force < 400: 
+        return "ENDORMI"
+    # Mouvement moyen → agité
+    elif force < 1200:
+        return "AGITE"
+    # Fort mouvement ou chute → très agité 
+    else:
+        return "TRES_AGITE"
+
+# Affiche un symbole selon l'état sur les leds
+def show_status(e):
+    if e == "ENDORMI":
+        display.show("Z")   # Z = sommeil
+    elif e == "AGITE":
+        display.show("A")   # A = agité
+    else:
+        display.show("!")   # ! = très agité
+
+# Joue un son selon l'état
+def play_sound(e):
+    if e == "ENDORMI":
+        musique_endormi()  # son doux et apaisant
+    elif e == "AGITE":
+        musique_agite()    # son court et regulier
+    else:
+        musique_tres_agite() # alarme sonore
+
+# Envoie l'état au micobites parent
+def send_status(e):
+    radio.send(e)
+
+# Fonction principale qui met à jour l’état si nécessaire
+def update_status():
+    force = detect_mouvement()        # mesure du mouvement
+    nouvel_etat = calculate_status(force)  # conversion en état
+
+    # Agit uniquement s'il y a un changement d'état
+    if nouvel_etat != etat["eveil"]:
+        etat["eveil"] = nouvel_etat
+        show_status(nouvel_etat)
+        send_status(nouvel_etat)
+        play_sound(nouvel_etat)
+        
+=# Affiche l'état initial au démarrage
+show_status(etat["eveil"])
+
+# Boucle principale : vérifie l'état 
+while True:
+    update_status()
+    sleep(2500) # 3 secondes avant de changer d etat apres la fin de la musique
         
 #############################################################################
 #Fonctions pour le lait
