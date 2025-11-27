@@ -47,10 +47,14 @@ def vigenere(message, key, decryption=False):
             text += char
     return text
 
-def send_packet(key, type, content):
+def send_packet(key, type, content): 
     length = len(content)
+    nonce = str(random.randint(100000, 999999))
+    content = nonce + ":" + content
     message = str(type) + "|" + str(length) + "|" + content
+    #on verif le mess ici
     crypted_message = vigenere(message, key, decryption=False)
+    #et ici
     radio.send(crypted_message)
 
 def unpack_data(crypted_message, key):
@@ -63,15 +67,20 @@ def unpack_data(crypted_message, key):
 
 def receive_packet(packet_received, key):
     packet_type, packet_length, packet_content = unpack_data(packet_received, key)
-    if packet_type == "":
+    if packet_type == None:
         return "", 0, ""
+        
     if ":" not in packet_content:
         return "", 0, ""
-    nonce, data = packet_content.split(":", 1)
+    else:
+        nonce, data = packet_content.split(":", 1)
+        #vérif ici aussi
     if nonce in nonce_list:
         return "", 0, ""
-    nonce_list.append(nonce)
-    return packet_type, packet_length, nonce, data
+    else:
+        nonce_list.append(nonce)
+        
+    return packet_type, packet_length, data
 
 def calculate_challenge_response(challenge):
     random.seed(int(challenge))
@@ -82,13 +91,12 @@ def respond_to_connexion_request(key):
     while running_time() - t0 < 10000:
         packet = radio.receive()
         if packet:
-            packet_type, packet_length, nonce, data = receive_packet(packet, key)
+            packet_type, packet_length, data = receive_packet(packet, key)
             if packet_type == "01":
                 random.seed(int(data))  ####meme seed entre parent et bebe donc meme réponse
                 challenge_resp = str(random.randint(100000, 999999))
                 hashed = hashing(challenge_resp)
-                nonce2 = str(random.randint(100000, 999999))
-                send_packet(key, "02", nonce2 + ":" + hashed)
+                send_packet(key, "02", hashed)
                 return key + challenge_resp
     return ""
 
@@ -144,7 +152,7 @@ def send_doses(e):
 
 def Temperature1(data):
     t = data
-    display.show(Image.HAPPY)
+    #display.show(Image.HAPPY)
     sleep(1000)
     display.scroll("t: " + str(t))
     sleep(250)
@@ -152,20 +160,20 @@ def Temperature1(data):
 def Temperature2(data):
     #petite alerte ON ENVOIE EMOJI PAS TRISTE MAIS PAS JOYEUX COMME CA :/ et on envoie la t°
     t = data
-    audio.play(Sound.HAPPY)
+    #audio.play(Sound.HAPPY)
     display.show(Image.SAD)
     sleep(1000)
-    display.scroll("t: " + str(temperature()))
+    display.scroll("t: " + str(t))
     sleep(250)
 
 def Temperature3(data):
     #grosse alerte C'EST LE :( + t°
     t = data
-    audio.play(Sound.SAD)
+    #audio.play(Sound.SAD)
     for i in range(3):
         display.show(Image.ANGRY)
         sleep(1000)
-        display.scroll("t: " + str(temperature()))
+        display.scroll("t: " + str(t))
         sleep(250)
     
     
@@ -186,25 +194,29 @@ def main():
     else:
         display.scroll("co FAIL")
         
+    display.show(Image.SQUARE)
+    sleep(1000)
     while True:
-        display.show(Image.SQUARE)
-        message_received = radio.receive()
-        try:
-            packet_type , packet_length, nonce, data = receive_packet(message_received, session_key)
-        except:
-            continue
         
-
+        message_received = radio.receive()
+        if message_received != None:
+            display.show(Image.ANGRY)
+            sleep(1000)
+            packet_type , packet_length, data = receive_packet(message_received, session_key)
+            display.scroll(packet_type)
+            sleep(1000)
+            #verif packet type et data
+        
+        
         #################partie environnement
-        if packet_type == "1":
-            Temperature1(data)
+            if packet_type == "3":
+                Temperature1(data)
 
-        if packet_type == "2":
-            Temperature2(data)
+            if packet_type == "4":
+                Temperature2(data)
 
-        if packet_type == "3":
-            display.scroll("OK")
-            Temperature3(data)
+            if packet_type == "5":
+                Temperature3(data)
             
         
         ##################partie biberon
