@@ -48,6 +48,8 @@ def vigenere(message, key, decryption=False):
 
 def send_packet(key, type, content):
     length = len(content)
+    nonce = str(random.randint(100000, 999999))
+    content = nonce + ":" + content
     message = str(type) + "|" + str(length) + "|" + content
     crypted_message = vigenere(message, key, decryption=False)
     radio.send(crypted_message)
@@ -66,25 +68,27 @@ def receive_packet(packet_received, key):
         return "", 0, ""
     if ":" not in packet_content:
         return "", 0, ""
-    nonce, data = packet_content.split(":", 1)
+    else:
+        nonce, data = packet_content.split(":", 1)
     if nonce in nonce_list:
         return "", 0, ""
-    nonce_list.append(nonce)
-    return packet_type, packet_length, nonce, data
+    else:
+        nonce_list.append(nonce)
+    return packet_type, packet_length, data
 
 def calculate_challenge_response(challenge):
     random.seed(int(challenge))
     return str(random.randint(100000, 999999))
 
 def establish_connexion(key):
-    nonce = str(random.randint(100000, 999999))
+    
     challenge = str(random.randint(100000, 999999))
-    send_packet(key, "01", nonce + ":" + challenge)
+    send_packet(key, "01", challenge)
     t = running_time()
     while running_time() - t < 10000:
         packet = radio.receive()
         if packet:
-            packet_type, packet_length, nonce, data = receive_packet(packet, key)
+            packet_type, packet_length, data = receive_packet(packet, key)
             if packet_type == "02":
                 local_resp = calculate_challenge_response(challenge)
                 if hashing(local_resp) == data:
@@ -148,13 +152,9 @@ def update_status():
         send_status(nouvel_etat)
         play_sound(nouvel_etat)
         
-=# Affiche l'état initial au démarrage
+# Affiche l'état initial au démarrage
 show_status(etat["eveil"])
-
-# Boucle principale : vérifie l'état 
-while True:
-    update_status()
-    sleep(2500) # 3 secondes avant de changer d etat apres la fin de la musique
+    
         
 #############################################################################
 #Fonctions pour le lait
@@ -181,13 +181,13 @@ while True:
 def get_temperature():
     t = temperature()
     if 19 <= t <= 21:
-        send_packet(session_key, "1", str(t))
+        send_packet(session_key, "3", str(t))
             
     if 17 <= t <= 18 or 22 <= t <= 24:
-        send_packet(session_key, "2", str(t))
+        send_packet(session_key, "4", str(t))
 
     if t < 17 or t > 24:
-        send_packet(session_key, "3", str(t))
+        send_packet(session_key, "5", str(t))
             
     
 
@@ -217,6 +217,13 @@ def main():
         
     while True:
         get_temperature()
+
+
+
+
+        
+        #update_status()
+        #sleep(2500) # 3 secondes avant de changer d etat apres la fin
         
         
         
@@ -226,4 +233,5 @@ main()
         
         
         
+
 
