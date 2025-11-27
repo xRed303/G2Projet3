@@ -64,16 +64,19 @@ def unpack_data(crypted_message, key):
 
 def receive_packet(packet_received, key):
     packet_type, packet_length, packet_content = unpack_data(packet_received, key)
-    if packet_type == "":
+    if packet_type == None:
         return "", 0, ""
+        
     if ":" not in packet_content:
         return "", 0, ""
     else:
         nonce, data = packet_content.split(":", 1)
+        
     if nonce in nonce_list:
         return "", 0, ""
     else:
         nonce_list.append(nonce)
+        
     return packet_type, packet_length, data
 
 def calculate_challenge_response(challenge):
@@ -83,13 +86,13 @@ def calculate_challenge_response(challenge):
 def establish_connexion(key):
     
     challenge = str(random.randint(100000, 999999))
-    send_packet(key, "01", challenge)
+    send_packet(key, "1", challenge)
     t = running_time()
     while running_time() - t < 10000:
         packet = radio.receive()
         if packet:
             packet_type, packet_length, data = receive_packet(packet, key)
-            if packet_type == "02":
+            if packet_type == "2":
                 local_resp = calculate_challenge_response(challenge)
                 if hashing(local_resp) == data:
                     return key + local_resp
@@ -226,8 +229,6 @@ def main():
         #sleep(2500) # 3 secondes avant de changer d etat apres la fin
         
         
-        
-
 main()
             
         
