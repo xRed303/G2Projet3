@@ -52,9 +52,7 @@ def send_packet(key, type, content):
     nonce = str(random.randint(100000, 999999))
     content = nonce + ":" + content
     message = str(type) + "|" + str(length) + "|" + content
-    #on verif le mess ici
     crypted_message = vigenere(message, key, decryption=False)
-    #et ici
     radio.send(crypted_message)
 
 def unpack_data(crypted_message, key):
@@ -74,7 +72,7 @@ def receive_packet(packet_received, key):
         return "", 0, ""
     else:
         nonce, data = packet_content.split(":", 1)
-        #vérif ici aussi
+        
     if nonce in nonce_list:
         return "", 0, ""
     else:
@@ -87,16 +85,16 @@ def calculate_challenge_response(challenge):
     return str(random.randint(100000, 999999))
 
 def respond_to_connexion_request(key):
-    t0 = running_time()
-    while running_time() - t0 < 10000:
+    t = running_time()
+    while running_time() - t < 10000:
         packet = radio.receive()
         if packet:
             packet_type, packet_length, data = receive_packet(packet, key)
-            if packet_type == "01":
+            if packet_type == "1":
                 random.seed(int(data))  ####meme seed entre parent et bebe donc meme réponse
                 challenge_resp = str(random.randint(100000, 999999))
                 hashed = hashing(challenge_resp)
-                send_packet(key, "02", hashed)
+                send_packet(key, "2", hashed)
                 return key + challenge_resp
     return ""
 
