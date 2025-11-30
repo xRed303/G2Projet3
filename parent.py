@@ -105,25 +105,19 @@ def respond_to_connexion_request(key):
 etat = {"doses": 0}
 
 # Affiche la dose sur les LEDs
-def show_value(val):
-    if val < 10:    
-        display.show(str(val)) # Affiche la dose sur les LEDs et ne va pas au-dessus de 9
-    else:  
-        # Scroll qui se fait a l infini et sans blocker le programme pour les nombres a 2 chiffres
-         display.scroll(str(val), wait=False, loop=True)
+def show_value(val):    
+    display.show(str(val)) # Affiche la dose sur les LEDs et ne va pas au-dessus de 9
 
 # Affiche 0 dès le démarrage et la derniere dose si on eteint pas le microbits
 show_value(etat["doses"])
 
 def add_doses(e):
-    # Si on appuie sur le bouton B 
-    if button_b.was_pressed():   
-        if e["doses"] < 99: # limite de doses a donner
-            e["doses"] += 1  # On augmente le compteur
+    def add_doses(e):
+    if button_b.was_pressed():
+        if e["doses"] < 10:
+            e["doses"] += 1
             show_value(e["doses"])
-        else:
-            display.scroll("Stop c'est quoi ton probleme de lui donner autant de dose")    # si on dépasse les 99 doses MSG D AVERTISSEMENT
-            show_value(e["doses"])
+            send_packet(session_key, "6", str(e["doses"]))
 
 def delete_doses(e):
     # Si on appuie sur le bouton A
@@ -131,20 +125,16 @@ def delete_doses(e):
         if e["doses"] > 0:  # On ne peut pas descendre en dessous de 0
             e["doses"] -= 1   # On diminue le compteur
         show_value(e["doses"])
+         send_packet(session_key, "6", str(e["doses"]))
 
 def reset_doses(e):
     # Si on appuie sur les deux boutons en même temps
     if button_a.is_pressed() and button_b.is_pressed():
-        e["doses"] = 0  # On remet à zéro
-        show_value(e["doses"])  
-
-# Envoyer le nombre de doses be:bi’ enfant
-def send_doses(e):
-    if pin_logo.is_touched():
-        display.show(Image.YES) # Affiche un petit symbole pour indiquer que le message est envoyé
-        radio.send(str(e["doses"])) 
-        sleep(750) 
+        e["doses"] = 0
         show_value(e["doses"])
+        send_packet(session_key, "6", str(e["doses"])) 
+
+
 ##############################################################################################
 #partie environnement bébé
 
@@ -221,7 +211,6 @@ def main():
         """add_doses(etat)
         delete_doses(etat)
         reset_doses(etat)
-        send_doses(etat)
         """
 
 main()
