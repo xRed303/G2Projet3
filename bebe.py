@@ -6,10 +6,6 @@ import music
 
 etat = {"doses_recu": 0 }
 
-
-nonce_list = []
-
-
 def hashing(string):
     def to_32(value):
         value = value % (2 ** 32)
