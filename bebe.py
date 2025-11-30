@@ -4,6 +4,12 @@ import radio
 import random
 import music
 
+etat = {doses_recu: 0 }
+
+
+nonce_list = []
+
+
 def hashing(string):
     def to_32(value):
         value = value % (2 ** 32)
@@ -162,9 +168,8 @@ show_status(etat["eveil"])
 #############################################################################
 #Fonctions pour le lait
 
-def doses_total(packet_type, data):
-    if packet_type == "6":
-        # On prend juste la dernière valeur reçue
+def doses_total(data):
+    if data:
         etat["doses_recu"] = int(data)
         display.scroll("Dose:" + str(etat["doses_recu"]))
 
