@@ -203,17 +203,26 @@ def main():
         display.scroll("co OK")
     else:
         display.scroll("co FAIL")
-        
-    while True:
-        get_temperature()
+
+while True:
+        message_received = radio.receive()
+        if message_received != None:
+            display.show(Image.ANGRY)
+            sleep(1000)
+            packet_type, packet_length, data = receive_packet(message_received, session_key)
+            display.scroll(packet_type)
+            sleep(1000)
+            
+            
+            if packet_type == "6":
+                doses_total(data)  # Affiche la dose de lait reçue
+    
+ while True:
+     get_temperature()
+
+    
 
 
-
-
-        
-        #update_status()
-        #sleep(2500) # 3 secondes avant de changer d etat apres la fin
-        
         
 main()
             
