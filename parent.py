@@ -112,12 +112,11 @@ def show_value(val):
 show_value(etat["doses"])
 
 def add_doses(e):
-    def add_doses(e):
-        if button_b.was_pressed():
-            if e["doses"] < 10:
-                e["doses"] += 1
-                show_value(e["doses"])
-                send_packet(session_key, "6", str(e["doses"]))
+    if button_b.was_pressed():
+        if e["doses"] < 10:
+            e["doses"] += 1
+            show_value(e["doses"])
+            send_packet(session_key, "6", str(e["doses"]))
 
 def delete_doses(e):
     # Si on appuie sur le bouton A
@@ -208,9 +207,10 @@ def main():
             
         
         ##################partie biberon
-        """add_doses(etat)
-        delete_doses(etat)
-        reset_doses(etat)
-        """
+        while True:
+            add_doses(etat)
+            delete_doses(etat)
+            reset_doses(etat)
+        
 
 main()
