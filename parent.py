@@ -113,11 +113,11 @@ show_value(etat["doses"])
 
 def add_doses(e):
     def add_doses(e):
-    if button_b.was_pressed():
-        if e["doses"] < 10:
-            e["doses"] += 1
-            show_value(e["doses"])
-            send_packet(session_key, "6", str(e["doses"]))
+        if button_b.was_pressed():
+            if e["doses"] < 10:
+                e["doses"] += 1
+                show_value(e["doses"])
+                send_packet(session_key, "6", str(e["doses"]))
 
 def delete_doses(e):
     # Si on appuie sur le bouton A
@@ -125,7 +125,7 @@ def delete_doses(e):
         if e["doses"] > 0:  # On ne peut pas descendre en dessous de 0
             e["doses"] -= 1   # On diminue le compteur
         show_value(e["doses"])
-         send_packet(session_key, "6", str(e["doses"]))
+        send_packet(session_key, "6", str(e["doses"]))
 
 def reset_doses(e):
     # Si on appuie sur les deux boutons en même temps
