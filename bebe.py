@@ -162,17 +162,11 @@ show_status(etat["eveil"])
 #############################################################################
 #Fonctions pour le lait
 
-
-
-
-
-
-
-
-
-
-
-
+def doses_total(packet_type, data):
+    if packet_type == "6":
+        # On prend juste la dernière valeur reçue
+        etat["doses_recu"] = int(data)
+        display.scroll("Dose:" + str(etat["doses_recu"]))
 
 
 ########################################################################################################
@@ -191,14 +185,6 @@ def get_temperature():
 
     if t < 17 or t > 24:
         send_packet(session_key, "5", str(t))
-            
-    
-
-
-
-
-
-
 
 
 ###########################################################################################################
