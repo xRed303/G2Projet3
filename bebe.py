@@ -205,14 +205,7 @@ def main():
     else:
         display.scroll("co FAIL")
 
-while True:
-        message_received = radio.receive()
-        if message_received != None:
-            display.show(Image.ANGRY)
-            sleep(1000)
-            packet_type, packet_length, data = receive_packet(message_received, session_key)
-            display.scroll(packet_type)
-            sleep(1000)
+
             
             
             if packet_type == "6":
