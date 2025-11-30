@@ -4,7 +4,7 @@ import radio
 import random
 import music
 
-etat = {doses_recu: 0 }
+etat = {"doses_recu": 0 }
 
 
 nonce_list = []
