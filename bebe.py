@@ -152,11 +152,11 @@ def show_status(e):
 # Joue un son selon l'état
 def play_sound(e):
     if e == "ENDORMI":
-        musique_endormi()  # son doux et apaisant
+        musique()  # son doux et apaisant
     elif e == "AGITE":
-        musique_agite()    # son court et regulier
+        musique2()    # son court et regulier
     else:
-        musique_tres_agite() # alarme sonore
+        music.play(music.BA_DING) # alarme sonore
 
 # Envoie l'état au micobites parent
 def send_status(e):
@@ -223,13 +223,21 @@ def main():
         display.scroll("co FAIL")
 
 
-            
+    while True:
+        
+        message_received = radio.receive()
+        if message_received != None:
+            display.show(Image.ANGRY)
+            sleep(1000)
+            packet_type , packet_length, data = receive_packet(message_received, session_key)
+            display.scroll(packet_type)
+            sleep(1000)
             
             if packet_type == "6":
                 doses_total(data)  # Affiche la dose de lait reçue
     
-     while True:
-         get_temperature()
+             
+            get_temperature()
 
     
 
