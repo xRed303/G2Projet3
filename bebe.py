@@ -6,6 +6,25 @@ import music
 
 etat = {"doses_recu": 0 }
 
+def musique():
+    tune = [
+    "R:4", "C4:2","D:2","E:4", "C:2","R:2","C:2","D:2","E:4","C:2", "R:2",
+    "C4:2","E:2","A#:4","A:4","G:4","G:4","F:4",
+    "G#3:2","A#:2","B:4", "G#:2","R:2","G#:2","A#:2","B:4","G#:2", "R:2",
+    "G#:2", "B:4", "D3:4", "G:4", #première partie
+    ]
+
+    music.play(tune)
+
+def musique2():
+    tune = [
+    "G#3:2","A#:2","B:4", "G#:2","R:2","G#:2","A#:2","B:4","G#:2", "R:2",
+    "G#:2", "B:2", "F4:2", "E:2", "C:2" #deuxième partie
+    ]
+    music.play(tune)
+musique()
+musique2()
+
 def hashing(string):
     def to_32(value):
         value = value % (2 ** 32)
