@@ -4,8 +4,6 @@ import radio
 import random
 import music
 
-etat = {"doses_recu": 0 }
-
 def musique():
     tune = [
     "R:4", "C4:2","D:2","E:4", "C:2","R:2","C:2","D:2","E:4","C:2", "R:2",
