@@ -211,8 +211,8 @@ def main():
             if packet_type == "6":
                 doses_total(data)  # Affiche la dose de lait reçue
     
- while True:
-     get_temperature()
+     while True:
+         get_temperature()
 
     
 
