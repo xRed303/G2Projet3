@@ -199,7 +199,7 @@ def update_status():
             etat = etat_calcule
             show_status(etat)
             play_sound(etat)
-            send_status(etat, force)
+            send_status(etat, detect_mouvement())
         # Réinitialiser timer et b pour la prochaine observation
         timer = running_time()
         force_b.clear()
