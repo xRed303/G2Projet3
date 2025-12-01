@@ -212,7 +212,19 @@ display.show(Image.SQUARE_SMALL) #on affiche l'image pour identifier le be:bi pa
 radio.on()
 radio.config(channel=2)
 nonce_list = []
-
+############################################################################################################
+#fonctions pour interface bb
+def mode_lait(quantite,allume=True):
+    display.show(quantite)
+    sleep(3000)
+def mode_temp(temp,allume=True):
+    if allume:
+        display.show(temp)
+        sleep(3000)
+def mode_eveil_bb(allume=True):
+    if allume:
+        display.show(Image('09999:''99990:''99900:''99990:''09999'))
+        sleep(3000)
 def main():
     global session_key
     key = "MIMOSA"
@@ -236,8 +248,31 @@ def main():
             if packet_type == "6":
                 doses_total(data)  # Affiche la dose de lait reçue
     
-             
-            get_temperature()
+        if button_a.was_pressed():
+        
+            mode_eveil_bb(True)
+            if button_a.was_pressed():
+                while not button_b.was_pressed():
+                    show_status(calculate_status(detect_mouvement()))
+            elif button_b.was_pressed():
+                while not button_a.was_pressed():
+                    send_status(calculate_status(detect_mouvement()))
+                
+            
+    
+        elif button_b.was_pressed():
+            message = unpack_data(message,"MIMOSA")
+            if message[0] == "LAIT":
+                try:
+                    quantite = unpack_data(message,"MIMOSA")[2]
+                    mode_lait(quantite,allume=True)
+                except:
+                    display.scroll("ERROR")
+            #il reçoit la quantité de lait du Be:Bi parent et l'affiche
+        elif pin0.is_touched():
+            temp = temperature()
+            mode_temp(temp,True) #affiche temp
+            
 
     
 
