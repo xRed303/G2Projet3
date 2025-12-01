@@ -271,7 +271,8 @@ def main():
             #il reçoit la quantité de lait du Be:Bi parent et l'affiche
         elif pin0.is_touched():
             temp = temperature()
-            mode_temp(temp,True) #affiche temp
+            while not button_b.was_pressed():
+                mode_temp(temp,True) #affiche temp
             
 
     
