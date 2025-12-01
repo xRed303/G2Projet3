@@ -166,7 +166,19 @@ def Temperature3(data):
     
 
 ################################################################################################
+def bebe_status(packet_type, data):
+    if packet_type == "7":
+        display.show("Z")  # ENDORMI
+    elif packet_type == "8":
+        display.show("A")  # AGITE
+    elif packet_type == "9":
+        display.show("!")  # TRES_AGITE
+    elif packet_type == "10":
+        display.show(Image.SURPRISED)  # CHUTE
+        sleep(1000)
+        display.scroll("Chute")
 
+################################################################################################
 display.show(Image.SQUARE)
 radio.on()
 radio.config(channel=2)
