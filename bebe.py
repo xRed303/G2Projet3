@@ -166,7 +166,7 @@ def send_status(status):
     elif status == "TRES_AGITE":
         send_packet(session_key, "9", status)
     if force >= 3000:  # alerte chute
-        send_packet(session_key, "10", status)
+        send_packet(session_key, "10", "CHUTE")
 
 # Mise à jour de l'état
 def update_status():
