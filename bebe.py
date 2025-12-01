@@ -180,7 +180,7 @@ def update_status():
             etat = "TRES_AGITE"
             show_status(etat)
             play_sound(etat)
-            send_status(etat)
+            send_status(etat, force)
         timer = running_time()
         force_b.clear()  # reset observation
         return
@@ -199,7 +199,7 @@ def update_status():
             etat = etat_calcule
             show_status(etat)
             play_sound(etat)
-            send_status(etat)
+            send_status(etat, force)
         # Réinitialiser timer et b pour la prochaine observation
         timer = running_time()
         force_b.clear()
