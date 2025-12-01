@@ -214,6 +214,9 @@ def main():
             sleep(1000)
             #verif packet type et data
         
+        add_doses(etat)
+        delete_doses(etat)
+        reset_doses(etat)
         
         #################partie environnement
             if packet_type == "3":
@@ -224,23 +227,18 @@ def main():
 
             if packet_type == "5":
                 Temperature3(data)
-            
-            
+        #################partie environnement 
             if packet_type == "7":
                 StatusEndormi(data)
-            elif packet_type == "8":
+                
+            if packet_type == "8":
                 StatusAgite(data)
-            elif packet_type == "9":
+                
+            if packet_type == "9":
                 StatusTresAgite(data)
-            elif packet_type == "10":
+                
+            if packet_type == "10":
                 StatusChute(data)
-            
-        
-        ##################partie biberon
-        while True:
-            add_doses(etat)
-            delete_doses(etat)
-            reset_doses(etat)
         
 
 main()
