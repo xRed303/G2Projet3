@@ -166,17 +166,25 @@ def Temperature3(data):
     
 
 ################################################################################################
-def bebe_status(packet_type, data):
-    if packet_type == "7":
-        display.show("Z")  # ENDORMI
-    elif packet_type == "8":
-        display.show("A")  # AGITE
-    elif packet_type == "9":
-        display.show("!")  # TRES_AGITE
-    elif packet_type == "10":
-        display.show(Image.SURPRISED)  # CHUTE
-        sleep(1000)
-        display.scroll("Chute")
+def StatusEndormi(data):
+    display.show("Z")
+    sleep(250)
+    display.scroll("ENDORMI")
+
+def StatusAgite(data):
+    display.show("A")
+    sleep(250)
+    display.scroll("AGITE")
+
+def StatusTresAgite(data):
+    display.show("!")
+    sleep(250)
+    display.scroll("TRES AGITE")
+
+def StatusChute(data):
+    display.show("!")
+    sleep(250)
+    display.scroll("Chute !")
 
 ################################################################################################
 display.show(Image.SQUARE)
@@ -216,6 +224,16 @@ def main():
 
             if packet_type == "5":
                 Temperature3(data)
+            
+            
+            if packet_type == "7":
+                StatusEndormi(data)
+            elif packet_type == "8":
+                StatusAgite(data)
+            elif packet_type == "9":
+                StatusTresAgite(data)
+            elif packet_type == "10":
+                StatusChute(data)
             
         
         ##################partie biberon
