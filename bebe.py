@@ -20,8 +20,6 @@ def musique2():
     "G#:2", "B:2", "F4:2", "E:2", "C:2" #deuxième partie
     ]
     music.play(tune)
-musique()
-musique2()
 
 def hashing(string):
     def to_32(value):
@@ -121,61 +119,82 @@ def establish_connexion(key):
 #######################################################
 #Fonctions sysytème surveillance etat bb
 
-# état initial
-etat = {"eveil": "ENDORMI"}  
+# État initial
+etat = "ENDORMI"
+timer = running_time()
+force_b = []
+Time = 3000  # 3 secondes 
 
-# Fonction qui lit la force du mouvement via l'accéléromètre
+# Fonctions
 def detect_mouvement():
     return accelerometer.get_strength()
 
-# Fonction qui calcule l'état d'éveil à partir de la force mesurée via l accelerometre
 def calculate_status(force):
-    # Faible mouvement → endormi
-    if force < 400: 
-        return "ENDORMI"
-    # Mouvement moyen → agité
-    elif force < 1200:
-        return "AGITE"
-    # Fort mouvement ou chute → très agité 
-    else:
+    if force >= 3000:
         return "TRES_AGITE"
+    elif force >= 1600:
+        return "TRES_AGITE"
+    elif force >= 1100:
+        return "AGITE"
+    else:
+        return "ENDORMI"
 
-# Affiche un symbole selon l'état sur les leds
 def show_status(e):
     if e == "ENDORMI":
-        display.show("Z")   # Z = sommeil
+        display.show("Z")
     elif e == "AGITE":
-        display.show("A")   # A = agité
+        display.show("A")
     else:
-        display.show("!")   # ! = très agité
+        display.show("!")
 
-# Joue un son selon l'état
 def play_sound(e):
     if e == "ENDORMI":
-        musique()  # son doux et apaisant
+        musique()
     elif e == "AGITE":
-        musique2()    # son court et regulier
+        musique2()
     else:
-        music.play(music.BA_DING) # alarme sonore
+        music.play(music.BA_DING)
 
-# Envoie l'état au micobites parent
-def send_status(e):
-    radio.send(e)
-
-# Fonction principale qui met à jour l’état si nécessaire
+# Mise à jour de l'état
 def update_status():
-    force = detect_mouvement()        # mesure du mouvement
-    nouvel_etat = calculate_status(force)  # conversion en état
+    global etat, timer, force_buffer
 
-    # Agit uniquement s'il y a un changement d'état
-    if nouvel_etat != etat["eveil"]:
-        etat["eveil"] = nouvel_etat
-        show_status(nouvel_etat)
-        send_status(nouvel_etat)
-        play_sound(nouvel_etat)
-        
-# Affiche l'état initial au démarrage
-show_status(etat["eveil"])
+    force = detect_mouvement()
+
+    # Chute 
+    if force >= 3000:
+        if etat != "TRES_AGITE":
+            etat = "TRES_AGITE"
+            show_status(etat)
+            play_sound(etat)
+        timer = running_time()
+        force_b.clear()  # reset observation
+        return
+
+    # Ajouter force au buffer pour moyenne sur 3 secondes
+    force_b.append(force)
+
+    # Si le temps d'observation atteint 3 sec
+    if running_time() - timer >= Time:
+        # Calculer moyenne
+        avg_force = sum(force_b) / len(force_b)
+        # Détermine l'état selon la moyenne
+        etat_calcule = calculate_status(avg_force)
+        # Met à jour l état et affiche/son
+        if etat != etat_calcule:
+            etat = etat_calcule
+            show_status(etat)
+            play_sound(etat)
+        # Réinitialiser timer et buffer pour la prochaine observation
+        timer = running_time()
+        force_b.clear()
+
+# Affichage initial
+show_status(etat)
+
+# Boucle principale
+while True:
+    update_status
     
         
 #############################################################################
