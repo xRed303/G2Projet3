@@ -202,7 +202,7 @@ while True:
 
 def doses_total(data):
     if data:
-        etat["doses_recu"] = int(data)
+        etat["doses_recu"] = srt(data)
         display.scroll("Dose:" + str(etat["doses_recu"]))
 
 
