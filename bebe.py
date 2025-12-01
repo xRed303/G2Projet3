@@ -155,9 +155,22 @@ def play_sound(e):
     else:
         music.play(music.BA_DING)
 
+def send_status(status):
+    global session_key
+    if session_key == "":
+        return
+    if status == "ENDORMI":
+        send_packet(session_key, "7", status)
+    elif status == "AGITE":
+        send_packet(session_key, "8", status)
+    elif status == "TRES_AGITE":
+        send_packet(session_key, "9", status)
+    if force >= 3000:  # alerte chute
+        send_packet(session_key, "10", status)
+
 # Mise à jour de l'état
 def update_status():
-    global etat, timer, force_buffer
+    global etat, timer, force_b
 
     force = detect_mouvement()
 
@@ -167,11 +180,12 @@ def update_status():
             etat = "TRES_AGITE"
             show_status(etat)
             play_sound(etat)
+            send_status(etat)
         timer = running_time()
         force_b.clear()  # reset observation
         return
 
-    # Ajouter force au buffer pour moyenne sur 3 secondes
+    # Ajouter force au b pour moyenne sur 3 secondes
     force_b.append(force)
 
     # Si le temps d'observation atteint 3 sec
@@ -185,16 +199,13 @@ def update_status():
             etat = etat_calcule
             show_status(etat)
             play_sound(etat)
-        # Réinitialiser timer et buffer pour la prochaine observation
+            send_status(etat)
+        # Réinitialiser timer et b pour la prochaine observation
         timer = running_time()
         force_b.clear()
 
 # Affichage initial
 show_status(etat)
-
-# Boucle principale
-while True:
-    update_status
     
         
 #############################################################################
@@ -255,7 +266,7 @@ def main():
 
 
     while True:
-        
+        update_status()
         message_received = radio.receive()
         if message_received != None:
             display.show(Image.ANGRY)
