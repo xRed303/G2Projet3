@@ -210,7 +210,7 @@ show_status(etat)
         
 #############################################################################
 #Fonctions pour le lait
-
+etat_bb = {"doses_recu": 0}
 def doses_total(data):
     if data:
         etat_bb["doses_recu"] = int(data)
