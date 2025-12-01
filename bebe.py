@@ -155,7 +155,7 @@ def play_sound(e):
     else:
         music.play(music.BA_DING)
 
-def send_status(status):
+def send_status(status, force):
     global session_key
     if session_key == "":
         return
@@ -213,8 +213,8 @@ show_status(etat)
 
 def doses_total(data):
     if data:
-        etat["doses_recu"] = srt(data)
-        display.scroll("Dose:" + str(etat["doses_recu"]))
+        etat_bb["doses_recu"] = int(data)
+        display.scroll("Dose:" + str(etat_bb["doses_recu"]))
 
 
 ########################################################################################################
