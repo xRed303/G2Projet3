@@ -211,7 +211,7 @@ def update_status():
 etat_bb = {}
 def doses_total(data):
     etat_bb["doses_recu"] = int(data)
-    display.show(etat_bb["doses_recu"])
+    return etat_bb["doses_recu"]
 
 
 ########################################################################################################
@@ -259,7 +259,6 @@ def main():
 
     while True:
         display.show(Image.SQUARE_SMALL)
-        get_temperature()
         update_status()   #je les mets ici ET dans l'interface pour les éventuelles alarmes
 
         message_received = radio.receive()
@@ -275,8 +274,8 @@ def main():
                 
                 display.show(Image('09999:''99990:''99900:''99990:''09999'))
                 if button_a.was_pressed():
+                    show_status("ENDORMI")
                     while not pin_logo.is_touched():
-                        show_status("ENDORMI")
                         update_status()
 
         
@@ -291,7 +290,7 @@ def main():
                             packet_type , packet_length, data = receive_packet(message_received, session_key)
                             if packet_type == "6":
                                 doses = doses_total(data)
-                        display.show(doses)
+                        display.show(str(doses))
 
         
         ########pour la température
