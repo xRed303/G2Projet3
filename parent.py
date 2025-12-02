@@ -131,10 +131,6 @@ def reset_doses(e):
 
 ##############################################################################################
 #partie environnement bébé
-def get_temperature():
-    t = temperature()
-    return t
-    
 def Temperature1(data):
     t = data
     display.show(Image.HAPPY)
@@ -262,9 +258,6 @@ def main():
                 display.show("T")
                 if pin1.is_touched():
                     while not pin_logo.is_touched():
-            
-                        t = get_temperature()
-                        display.scroll(str(t))
                         
                         message_received = radio.receive()
                         if message_received != None:
