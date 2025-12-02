@@ -249,13 +249,12 @@ def main():
     global session_key
     key = "MIMOSA"
     doses = 0
-    session_key = "bla"
     
-    """session_key = establish_connexion(key)
+    session_key = establish_connexion(key)
     if session_key != "":
         display.scroll("co OK")
     else:
-        display.scroll("co FAIL")"""
+        display.scroll("co FAIL")
     
 
     while True:
