@@ -217,6 +217,7 @@ def doses_total(data):
 ########################################################################################################
 #Fonction pour vérifier la température durant le sommeil du bébé
 
+
 def get_temperature():
     t = temperature()
     if 19 <= t <= 21:
@@ -234,8 +235,10 @@ def get_temperature():
         a = 3
         return a, t
 
+
 ###########################################################################################################
 #toute la partie qui va faire en sorte que notre code fonctionne
+
 
 radio.on()
 radio.config(channel=2)
@@ -244,20 +247,29 @@ nonce_list = []
 def main():
     display.show(Image.SQUARE_SMALL)
     global session_key
-    session_key = "bla"
     key = "MIMOSA"
     doses = 0
+    session_key = "bla"
     
     """session_key = establish_connexion(key)
     if session_key != "":
         display.scroll("co OK")
     else:
-        display.scroll("co FAIL")
-    """
+        display.scroll("co FAIL")"""
+    
 
     while True:
         display.show(Image.SQUARE_SMALL)
-    
+        get_temperature()
+        update_status()   #je les mets ici ET dans l'interface pour les éventuelles alarmes
+
+        message_received = radio.receive()
+        if message_received != None:
+            packet_type , packet_length, data = receive_packet(message_received, session_key)
+            if packet_type == "6":
+                doses = doses_total(data)
+
+        
         ########pour le sommeil
         if button_a.was_pressed():  
             while not pin_logo.is_touched():
@@ -268,6 +280,7 @@ def main():
                         show_status("ENDORMI")
                         update_status()
 
+        
         #####pour le lait
         elif button_b.was_pressed():
             while not pin_logo.is_touched():
@@ -281,6 +294,7 @@ def main():
                                 doses = doses_total(data)
                         display.show(doses)
 
+        
         ########pour la température
         elif pin0.is_touched():
             while not pin_logo.is_touched():
@@ -306,7 +320,3 @@ def main():
 
 
 main()
-        
-        
-        
-
