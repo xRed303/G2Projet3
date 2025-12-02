@@ -209,22 +209,7 @@ def main():
         message_received = radio.receive()
         if message_received != None:
             packet_type , packet_length, data = receive_packet(message_received, session_key)
-            
-            if packet_type == "3":
-                 Temperature1(data)
 
-            if packet_type == "4":
-                Temperature2(data)
-    
-            if packet_type == "5":
-                 Temperature3(data)
-                
-
-            if packet_type == "7":
-                StatusEndormi(data)
-                    
-            if packet_type == "8":
-                StatusAgite(data)
                                 
             if packet_type == "9":
                 StatusTresAgite(data)
