@@ -171,9 +171,8 @@ def send_status(status, force):
 # Mise à jour de l'état
 def update_status():
     global etat, timer, force_b
-
     force = detect_mouvement()
-
+    
     # Chute 
     if force >= 3000:
         if etat != "TRES_AGITE":
@@ -186,12 +185,14 @@ def update_status():
         return
 
     # Ajouter force au b pour moyenne sur 3 secondes
-    force_b.append(force)
+    if len(force_b) <= 100:
+        force_b.append(force)
 
     # Si le temps d'observation atteint 3 sec
     if running_time() - timer >= Time:
         # Calculer moyenne
         avg_force = sum(force_b) / len(force_b)
+        
         # Détermine l'état selon la moyenne
         etat_calcule = calculate_status(avg_force)
         # Met à jour l état et affiche/son
@@ -204,115 +205,108 @@ def update_status():
         timer = running_time()
         force_b.clear()
 
-# Affichage initial
-show_status(etat)
-    
-        
+
 #############################################################################
 #Fonctions pour le lait
-etat_bb = {"doses_recu": 0}
+etat_bb = {}
 def doses_total(data):
-    if data:
-        etat_bb["doses_recu"] = int(data)
-        display.scroll("Dose:" + str(etat_bb["doses_recu"]))
+    etat_bb["doses_recu"] = int(data)
+    display.show(etat_bb["doses_recu"])
 
 
 ########################################################################################################
-#Fonction pour vérifier l'environnement durant le sommeil du bébé
-
-#faire une interface pour avoir les données de quand il dort
-#donc un bouton qui montre la température, un le son et un la luminosité
+#Fonction pour vérifier la température durant le sommeil du bébé
 
 def get_temperature():
     t = temperature()
     if 19 <= t <= 21:
         send_packet(session_key, "3", str(t))
+        a = 1   #a c'est une variable que j'utilise pour l'interface
+        return a, t
             
     if 17 <= t <= 18 or 22 <= t <= 24:
         send_packet(session_key, "4", str(t))
-
+        a = 2
+        return a, t
+        
     if t < 17 or t > 24:
         send_packet(session_key, "5", str(t))
-
+        a = 3
+        return a, t
 
 ###########################################################################################################
 #toute la partie qui va faire en sorte que notre code fonctionne
 
-display.show(Image.SQUARE_SMALL) #on affiche l'image pour identifier le be:bi parent
 radio.on()
 radio.config(channel=2)
 nonce_list = []
-############################################################################################################
-#fonctions pour interface bb
-def mode_lait(quantite,allume=True):
-    display.show(quantite)
-    sleep(3000)
-def mode_temp(temp,allume=True):
-    if allume:
-        display.show(temp)
-        sleep(3000)
-def mode_eveil_bb(allume=True):
-    if allume:
-        display.show(Image('09999:''99990:''99900:''99990:''09999'))
-        sleep(3000)
+
 def main():
+    display.show(Image.SQUARE_SMALL)
     global session_key
+    session_key = "bla"
     key = "MIMOSA"
-    session_key = establish_connexion(key)
+    doses = 0
+    
+    """session_key = establish_connexion(key)
     if session_key != "":
         display.scroll("co OK")
     else:
         display.scroll("co FAIL")
-
+    """
 
     while True:
-        update_status()
-        message_received = radio.receive()
-        if message_received != None:
-            display.show(Image.ANGRY)
-            sleep(1000)
-            packet_type , packet_length, data = receive_packet(message_received, session_key)
-            display.scroll(packet_type)
-            sleep(1000)
-            
-            if packet_type == "6":
-                doses_total(data)  # Affiche la dose de lait reçue
+        display.show(Image.SQUARE_SMALL)
     
-        if button_a.was_pressed():
-        
-            mode_eveil_bb(True)
-            if button_a.was_pressed():
-                while not button_b.was_pressed():
-                    show_status(calculate_status(detect_mouvement()))
-            elif button_b.was_pressed():
-                while not button_a.was_pressed():
-                    send_status(calculate_status(detect_mouvement()))
+        ########pour le sommeil
+        if button_a.was_pressed():  
+            while not pin_logo.is_touched():
                 
-            
-    
+                display.show(Image('09999:''99990:''99900:''99990:''09999'))
+                if button_a.was_pressed():
+                    while not pin_logo.is_touched():
+                        show_status("ENDORMI")
+                        update_status()
+
+        #####pour le lait
         elif button_b.was_pressed():
-            message = unpack_data(message,"MIMOSA")
-            if message[0] == "LAIT":
-                try:
-                    quantite = unpack_data(message,"MIMOSA")[2]
-                    mode_lait(quantite,allume=True)
-                except:
-                    display.scroll("ERROR")
-            #il reçoit la quantité de lait du Be:Bi parent et l'affiche
+            while not pin_logo.is_touched():
+                display.show("L")
+                if button_b.was_pressed():
+                    while not pin_logo.is_touched():
+                        message_received = radio.receive()
+                        if message_received != None:
+                            packet_type , packet_length, data = receive_packet(message_received, session_key)
+                            if packet_type == "6":
+                                doses = doses_total(data)
+                        display.show(doses)
+
+        ########pour la température
         elif pin0.is_touched():
-            temp = temperature()
-            while not button_b.was_pressed():
-                mode_temp(temp,True) #affiche temp
-            
+            while not pin_logo.is_touched():
+                display.show("T")
+                if pin1.is_touched():
+                     while not pin_logo.is_touched():
+                        a, t = get_temperature()
+                        if a == 1:
+                            display.show(Image.HAPPY)
+                            sleep(750)
+                            display.scroll("t:" + str(temperature()))
+                            
+                            
+                        if a == 2:
+                            display.show(Image.SAD)
+                            sleep(750)
+                            display.scroll("t:" + str(t))
 
-    
+                        if a == 3:
+                            display.show(Image.ANGRY)
+                            sleep(750)
+                            display.scroll("t:" + str(t))
 
 
-        
 main()
-            
         
         
         
-
 
