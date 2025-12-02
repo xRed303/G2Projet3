@@ -101,15 +101,10 @@ def respond_to_connexion_request(key):
 #################################################################################
 # Fonctions doses de laits
 
-# On commence avec 0 dose de lait
-etat = {"doses": 0}
 
 # Affiche la dose sur les LEDs
 def show_value(val):    
     display.show(str(val)) # Affiche la dose sur les LEDs et ne va pas au-dessus de 9
-
-# Affiche 0 dès le démarrage et la derniere dose si on eteint pas le microbits
-show_value(etat["doses"])
 
 def add_doses(e):
     if button_b.was_pressed():
@@ -136,27 +131,28 @@ def reset_doses(e):
 
 ##############################################################################################
 #partie environnement bébé
-
+def get_temperature():
+    t = temperature()
+    return t
+    
 def Temperature1(data):
     t = data
-    #display.show(Image.HAPPY)
+    display.show(Image.HAPPY)
     sleep(1000)
     display.scroll("t: " + str(t))
     sleep(250)
     
 def Temperature2(data):
-    #petite alerte ON ENVOIE EMOJI PAS TRISTE MAIS PAS JOYEUX COMME CA :/ et on envoie la t°
     t = data
-    #audio.play(Sound.HAPPY)
+    audio.play(Sound.HAPPY)
     display.show(Image.SAD)
     sleep(1000)
     display.scroll("t: " + str(t))
     sleep(250)
 
 def Temperature3(data):
-    #grosse alerte C'EST LE :( + t°
     t = data
-    #audio.play(Sound.SAD)
+    audio.play(Sound.SAD)
     for i in range(3):
         display.show(Image.ANGRY)
         sleep(1000)
@@ -164,8 +160,10 @@ def Temperature3(data):
         sleep(250)
     
     
-
 ################################################################################################
+#environnement bébé
+
+
 def StatusEndormi(data):
     display.show("Z")
     sleep(250)
@@ -186,6 +184,7 @@ def StatusChute(data):
     sleep(250)
     display.scroll("Chute !")
 
+
 ################################################################################################
 display.show(Image.SQUARE)
 radio.on()
@@ -195,50 +194,105 @@ nonce_list = []
 def main():
     global session_key
     key = "MIMOSA"
+    etat = {"doses": 0}
+    display.show(Image.SQUARE)
+    sleep(1000)
     session_key = respond_to_connexion_request(key)
     if session_key != "":
         display.scroll("co OK")
     else:
         display.scroll("co FAIL")
         
-    display.show(Image.SQUARE)
-    sleep(1000)
+
     while True:
-        
+        display.show(Image.SQUARE)
         message_received = radio.receive()
         if message_received != None:
-            display.show(Image.ANGRY)
-            sleep(1000)
             packet_type , packet_length, data = receive_packet(message_received, session_key)
-            display.scroll(packet_type)
-            sleep(1000)
-            #verif packet type et data
-        
-        add_doses(etat)
-        delete_doses(etat)
-        reset_doses(etat)
-        
-        #################partie environnement
+            
             if packet_type == "3":
-                Temperature1(data)
+                 Temperature1(data)
 
             if packet_type == "4":
                 Temperature2(data)
-
+    
             if packet_type == "5":
-                Temperature3(data)
-        #################partie environnement 
+                 Temperature3(data)
+                
+
             if packet_type == "7":
                 StatusEndormi(data)
-                
+                    
             if packet_type == "8":
                 StatusAgite(data)
-                
+                                
             if packet_type == "9":
                 StatusTresAgite(data)
-                
+                                
             if packet_type == "10":
                 StatusChute(data)
+
+
         
+        ########pour le sommeil
+        if button_a.was_pressed():  
+            while not pin_logo.is_touched():
+                display.show(Image('09999:''99990:''99900:''99990:''09999'))
+                if button_a.was_pressed():
+                    while not pin_logo.is_touched():
+                        display.show("Z")
+                        message_received = radio.receive()
+                        if message_received != None:
+                            packet_type , packet_length, data = receive_packet(message_received, session_key)
+                        
+                            if packet_type == "7":
+                                StatusEndormi(data)
+                    
+                            if packet_type == "8":
+                                StatusAgite(data)
+                                
+                            if packet_type == "9":
+                                StatusTresAgite(data)
+                                
+                            if packet_type == "10":
+                                StatusChute(data)
+
+    
+        #####pour le lait
+        elif button_b.was_pressed():
+            while not pin_logo.is_touched():
+                display.show("L")
+                if button_b.was_pressed():
+                    while not pin_logo.is_touched():
+                        
+                        show_value(etat["doses"])
+                        add_doses(etat)
+                        delete_doses(etat)
+                        reset_doses(etat)
+                        
+                    
+        ########pour la température
+        elif pin0.is_touched():
+            while not pin_logo.is_touched():
+                display.show("T")
+                if pin1.is_touched():
+                    while not pin_logo.is_touched():
+            
+                        t = get_temperature()
+                        display.scroll(str(t))
+                        
+                        message_received = radio.receive()
+                        if message_received != None:
+                            packet_type , packet_length, data = receive_packet(message_received, session_key)
+                            
+                            if packet_type == "3":
+                                Temperature1(data)
+
+                            if packet_type == "4":
+                                Temperature2(data)
+    
+                            if packet_type == "5":
+                                Temperature3(data)
+                                
 
 main()
