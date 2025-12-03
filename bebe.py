@@ -140,11 +140,9 @@ def detect_mouvement():
     return accelerometer.get_strength()
 
 def calculate_status(force):
-    if force >= 3000:
+    if force >= 1800:
         return "TRES_AGITE"
-    elif force >= 1600:
-        return "TRES_AGITE"
-    elif force >= 1100:
+    elif force >= 1200:
         return "AGITE"
     else:
         return "ENDORMI"
@@ -154,16 +152,20 @@ def show_status(e):
         display.show("Z")
     elif e == "AGITE":
         display.show("A")
-    else:
+    elif e == "TRES AGITE":
         display.show("!")
+    else:
+        display.show("C")
 
 def play_sound(e):
     if e == "ENDORMI":
         musiqueZ()
     elif e == "AGITE":
         musiqueA()
-    else:
+    elif e == "TRES AGITE":
         music.play(music.BA_DING)
+    else:
+        music.play(music.WAWAWAWAA)
 
 def send_status(status, force):
     global session_key
@@ -175,7 +177,7 @@ def send_status(status, force):
         send_packet(session_key, "8", status)
     elif status == "TRES_AGITE":
         send_packet(session_key, "9", status)
-    if force >= 3000:  # alerte chute
+    if force >= 3200:  # alerte chute
         send_packet(session_key, "10", "CHUTE")
 
 # Mise à jour de l'état
@@ -184,12 +186,12 @@ def update_status():
     force = detect_mouvement()
     
     # Chute 
-    if force >= 3000:
+    if force >= 3200:
         if etat != "TRES_AGITE":
-            etat = "TRES_AGITE"
+            etat = "CHUTE"
             show_status(etat)
-            play_sound(etat)
             send_status(etat, force)
+            play_sound(etat)  
         timer = running_time()
         force_b.clear()  # reset observation
         return
@@ -209,8 +211,8 @@ def update_status():
         if etat != etat_calcule:
             etat = etat_calcule
             show_status(etat)
-            play_sound(etat)
             send_status(etat, detect_mouvement())
+            play_sound(etat)
         # Réinitialiser timer et b pour la prochaine observation
         timer = running_time()
         force_b.clear()
@@ -270,6 +272,11 @@ def main():
     while True:
         display.show(Image.SQUARE_SMALL)
         update_status()   #je les mets ici ET dans l'interface pour les éventuelles alarmes
+        force = detect_mouvement()
+        if etat == "TRES_AGITE":
+            send_status(etat,force)
+        if etat == "AGITE":
+            send_status(etat,force)
         message_received = radio.receive()
         
         if message_received != None:
@@ -290,7 +297,7 @@ def main():
                     show_status("ENDORMI")
                     
                     while not pin_logo.is_touched():
-                        update_status() # le update lance deja de la musique par lui-même ligne 212
+                        update_status()
 
         
         #####pour le lait
