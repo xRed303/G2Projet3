@@ -133,7 +133,7 @@ def establish_connexion(key):
 etat = "ENDORMI"
 timer = running_time()
 force_b = []
-Time = 3000  # 3 secondes 
+Time = 5000  # 5 secondes 
 
 # Fonctions
 def detect_mouvement():
@@ -188,7 +188,7 @@ def update_status():
     # Chute 
     if force >= 3200:
         if etat != "TRES_AGITE":
-            etat = "CHUTE"
+            etat = "CHUTE" #alerte meme si ce n est pas une chute car chance que ce soit une chute potentiel
             show_status(etat)
             send_status(etat, force)
             play_sound(etat)  
@@ -196,11 +196,11 @@ def update_status():
         force_b.clear()  # reset observation
         return
 
-    # Ajouter force au b pour moyenne sur 3 secondes
+    # Ajouter force au b pour moyenne sur 5 secondes
     if len(force_b) <= 100:
         force_b.append(force)
 
-    # Si le temps d'observation atteint 3 sec
+    # Si le temps d'observation atteint 5 sec
     if running_time() - timer >= Time:
         # Calculer moyenne
         avg_force = sum(force_b) / len(force_b)
