@@ -161,24 +161,26 @@ def Temperature3(data):
 
 
 def StatusEndormi(data):
-    display.show("Z")
-    sleep(250)
-    display.scroll("ENDORMI")
+    global last_display
+    last_display = "Z"
 
 def StatusAgite(data):
-    display.show("A")
-    sleep(250)
-    display.scroll("AGITE")
+    global last_display
+    last_display = "A"
 
 def StatusTresAgite(data):
+    global last_display
+    last_display = "!"
     display.show("!")
     sleep(250)
-    display.scroll("TRES AGITE")
+    display.scroll("TA")
 
 def StatusChute(data):
-    display.show("!")
+    global last_display
+    last_display = "C"
+    display.show(Image.SKULL)
     sleep(250)
-    display.scroll("Chute !")
+    display.scroll("Chute")
 
 
 ################################################################################################
@@ -186,6 +188,7 @@ display.show(Image.SQUARE)
 radio.on()
 radio.config(channel=2)
 nonce_list = []
+last_display = "Z"
 
 def main():
     global session_key
@@ -203,18 +206,23 @@ def main():
     while True:
         display.show(Image.SQUARE)
         message_received = radio.receive()
-        
         if message_received != None:
             packet_type , packet_length, data = receive_packet(message_received, session_key)
 
+            if packet_type == "7":
+                StatusEndormi(data)
+                    
             if packet_type == "8":
-                StatusAgite(data)
+                StatusAgite(data)  
+                
             if packet_type == "9":
+                music.play(music.BA_DING)
                 StatusTresAgite(data)
                                 
             if packet_type == "10":
+                music.play(music.WAWAWAWAA)
                 StatusChute(data)
-
+                
 
         
         ########pour le sommeil
@@ -223,7 +231,6 @@ def main():
                 display.show(Image('09999:''99990:''99900:''99990:''09999'))
                 if button_a.was_pressed():
                     while not pin_logo.is_touched():
-                        display.show("Z")
                         message_received = radio.receive()
                         if message_received != None:
                             packet_type , packet_length, data = receive_packet(message_received, session_key)
@@ -235,10 +242,16 @@ def main():
                                 StatusAgite(data)
                                 
                             if packet_type == "9":
+                                music.play(music.BA_DING)
                                 StatusTresAgite(data)
                                 
                             if packet_type == "10":
+                                music.play(music.WAWAWAWAA)
                                 StatusChute(data)
+                        
+                        global last_display
+                        if last_display:
+                            display.show(last_display)
 
     
         #####pour le lait
