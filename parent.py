@@ -161,22 +161,30 @@ def Temperature3(data):
 
 
 def StatusEndormi(data):
+    global last_display
+    last_display = "Z"
     display.show("Z")
     sleep(250)
     display.scroll("ENDORMI")
 
 def StatusAgite(data):
+    global last_display
+    last_display = "A"
     display.show("A")
     sleep(250)
     display.scroll("AGITE")
 
 def StatusTresAgite(data):
+    global last_display
+    last_display = "!"
     display.show("!")
     sleep(250)
     display.scroll("TRES AGITE")
 
 def StatusChute(data):
-    display.show("!")
+    global last_display
+    last_display = "C"
+    display.show(Image.SKULL)
     sleep(250)
     display.scroll("Chute !")
 
@@ -186,6 +194,7 @@ display.show(Image.SQUARE)
 radio.on()
 radio.config(channel=2)
 nonce_list = []
+last_display = "Z"
 
 def main():
     global session_key
@@ -208,11 +217,13 @@ def main():
 
                                 
             if packet_type == "9":
+                music.play(music.BA_DING)
                 StatusTresAgite(data)
                                 
             if packet_type == "10":
+                music.play(music.WAWAWAWAA)
                 StatusChute(data)
-
+                
 
         
         ########pour le sommeil
@@ -221,7 +232,6 @@ def main():
                 display.show(Image('09999:''99990:''99900:''99990:''09999'))
                 if button_a.was_pressed():
                     while not pin_logo.is_touched():
-                        display.show("Z")
                         message_received = radio.receive()
                         if message_received != None:
                             packet_type , packet_length, data = receive_packet(message_received, session_key)
@@ -233,10 +243,16 @@ def main():
                                 StatusAgite(data)
                                 
                             if packet_type == "9":
+                                music.play(music.BA_DING)
                                 StatusTresAgite(data)
                                 
                             if packet_type == "10":
+                                music.play(music.WAWAWAWAA)
                                 StatusChute(data)
+                        
+                        global last_display
+                        if last_display:
+                            display.show(last_display)
 
     
         #####pour le lait
