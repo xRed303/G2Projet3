@@ -4,22 +4,32 @@ import radio
 import random
 import music
 
-def musique():
+def musiqueZ():
     tune = [
     "R:4", "C4:2","D:2","E:4", "C:2","R:2","C:2","D:2","E:4","C:2", "R:2",
     "C4:2","E:2","A#:4","A:4","G:4","G:4","F:4",
     "G#3:2","A#:2","B:4", "G#:2","R:2","G#:2","A#:2","B:4","G#:2", "R:2",
-    "G#:2", "B:4", "D3:4", "G:4", #première partie
+    "G#:2", "B:4", "D3:4", "G:4","G#3:2","A#:2","B:4", "G#:2","R:2","G#:2","A#:2","B:4","G#:2", "R:2",
+    "G#:2", "B:2", "F4:2", "E:2", "C:2"
     ]
 
     music.play(tune)
-
-def musique2():
+def musiqueA():
     tune = [
-    "G#3:2","A#:2","B:4", "G#:2","R:2","G#:2","A#:2","B:4","G#:2", "R:2",
-    "G#:2", "B:2", "F4:2", "E:2", "C:2" #deuxième partie
+    "R:4", "C4:4", "E4:4", "G4:4", "C5:4", "R:4", 
+    "E4:4", "G4:4", "C5:4", "R:4", 
+    "C4:4", "G4:4", "E4:4", "C5:4", "R:4",
+    "C4:4", "E4:4", "G4:4", "C5:4", "R:4",
+    "E4:4", "G4:4", "C5:4", "R:4",
+    "R:4", "C4:4", "E4:4", "G4:4", "C5:4", "R:4",
+    "E4:4", "G4:4", "C5:4", "R:4", 
+    "C4:4", "G4:4", "E4:4", "C5:4", "R:4"
     ]
+
+
     music.play(tune)
+
+
 
 def hashing(string):
     def to_32(value):
@@ -149,9 +159,9 @@ def show_status(e):
 
 def play_sound(e):
     if e == "ENDORMI":
-        musique()
+        musiqueZ()
     elif e == "AGITE":
-        musique2()
+        musiqueA()
     else:
         music.play(music.BA_DING)
 
@@ -260,8 +270,13 @@ def main():
     while True:
         display.show(Image.SQUARE_SMALL)
         update_status()   #je les mets ici ET dans l'interface pour les éventuelles alarmes
-
+        force = detect_mouvement()
+        if etat == "TRES_AGITE":
+            send_status(etat,force)
+        if etat == "AGITE":
+            send_status(etat,force)
         message_received = radio.receive()
+        
         if message_received != None:
             packet_type , packet_length, data = receive_packet(message_received, session_key)
             if packet_type == "6":
@@ -269,12 +284,16 @@ def main():
 
         
         ########pour le sommeil
-        if button_a.was_pressed():  
+        if button_a.was_pressed():
+            
             while not pin_logo.is_touched():
                 
+                
                 display.show(Image('09999:''99990:''99900:''99990:''09999'))
+                play_sound(etat)
                 if button_a.was_pressed():
                     show_status("ENDORMI")
+                    
                     while not pin_logo.is_touched():
                         update_status()
 
