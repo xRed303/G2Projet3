@@ -270,11 +270,6 @@ def main():
     while True:
         display.show(Image.SQUARE_SMALL)
         update_status()   #je les mets ici ET dans l'interface pour les éventuelles alarmes
-        force = detect_mouvement()
-        if etat == "TRES_AGITE":
-            send_status(etat,force)
-        if etat == "AGITE":
-            send_status(etat,force)
         message_received = radio.receive()
         
         if message_received != None:
@@ -295,7 +290,7 @@ def main():
                     show_status("ENDORMI")
                     
                     while not pin_logo.is_touched():
-                        update_status()
+                        update_status() # le update lance deja de la musique par lui-même ligne 212
 
         
         #####pour le lait
