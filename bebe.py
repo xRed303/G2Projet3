@@ -140,9 +140,9 @@ def detect_mouvement():
     return accelerometer.get_strength()
 
 def calculate_status(force):
-    if force >= 1800:
+    if  3200 > force >= 1500:
         return "TRES_AGITE"
-    elif force >= 1200:
+    elif 1500 > force >= 1100:
         return "AGITE"
     else:
         return "ENDORMI"
@@ -152,7 +152,7 @@ def show_status(e):
         display.show("Z")
     elif e == "AGITE":
         display.show("A")
-    elif e == "TRES AGITE":
+    elif e == "TRES_AGITE":
         display.show("!")
     else:
         display.show("C")
@@ -162,7 +162,7 @@ def play_sound(e):
         musiqueZ()
     elif e == "AGITE":
         musiqueA()
-    elif e == "TRES AGITE":
+    elif e == "TRES_AGITE":
         music.play(music.BA_DING)
     else:
         music.play(music.WAWAWAWAA)
@@ -212,13 +212,13 @@ def update_status():
             etat = etat_calcule
             show_status(etat)
             send_status(etat, detect_mouvement())
-            play_sound(etat)
+            #play_sound(etat)
         # Réinitialiser timer et b pour la prochaine observation
         timer = running_time()
         force_b.clear()
 
 
-#############################################################################
+####################################
 #Fonctions pour le lait
 etat_bb = {}
 def doses_total(data):
@@ -271,14 +271,7 @@ def main():
 
     while True:
         display.show(Image.SQUARE_SMALL)
-        update_status()   #je les mets ici ET dans l'interface pour les éventuelles alarmes
-        force = detect_mouvement()
-        if etat == "TRES_AGITE":
-            send_status(etat,force)
-        if etat == "AGITE":
-            send_status(etat,force)
         message_received = radio.receive()
-        
         if message_received != None:
             packet_type , packet_length, data = receive_packet(message_received, session_key)
             if packet_type == "6":
@@ -292,7 +285,8 @@ def main():
                 
                 
                 display.show(Image('09999:''99990:''99900:''99990:''09999'))
-                play_sound(etat)
+                #play_sound(etat)
+                sleep (2000)
                 if button_a.was_pressed():
                     show_status("ENDORMI")
                     
