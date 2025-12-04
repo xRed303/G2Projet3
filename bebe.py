@@ -212,7 +212,7 @@ def update_status():
             etat = etat_calcule
             show_status(etat)
             send_status(etat, detect_mouvement())
-            #play_sound(etat)
+            play_sound(etat)
         # Réinitialiser timer et b pour la prochaine observation
         timer = running_time()
         force_b.clear()
@@ -285,8 +285,6 @@ def main():
                 
                 
                 display.show(Image('09999:''99990:''99900:''99990:''09999'))
-                #play_sound(etat)
-                sleep (2000)
                 if button_a.was_pressed():
                     show_status("ENDORMI")
                     
