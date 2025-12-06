@@ -183,6 +183,7 @@ def StatusChute(data):
     display.scroll("Chute")
 
 
+
 ################################################################################################
 display.show(Image.SQUARE)
 radio.on()
